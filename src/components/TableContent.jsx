@@ -1,27 +1,32 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import EditTask from "../modals/EditTask";
 import DeleteTask from "../modals/DeleteTask";
 
 const TableContent = ({ taskObj, index, deleteTask, updateListArray }) => {
-  const [updates, setUpdates] = useState(false);
-  const [deletes, setDeletes] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const toggle = () => {
-    setUpdates(!updates);
-    setDeletes(false);
+  const openEditModal = () => {
+    setIsEditOpen(true);
+    setIsDeleteOpen(false);
   };
 
-  const delToggle = () => {
-    setDeletes(!deletes);
-    setUpdates(false);
+  const openDeleteModal = () => {
+    setIsDeleteOpen(true);
+    setIsEditOpen(false);
   };
 
-  const updateTask = (obj) => {
-    updateListArray(obj, index);
+  const closeEditModal = () => setIsEditOpen(false);
+  const closeDeleteModal = () => setIsDeleteOpen(false);
+
+  const handleUpdate = (updatedTask) => {
+    updateListArray(updatedTask, index);
+    closeEditModal();
   };
 
   const handleDelete = () => {
     deleteTask(index);
+    closeDeleteModal();
   };
 
   return (
@@ -29,34 +34,31 @@ const TableContent = ({ taskObj, index, deleteTask, updateListArray }) => {
       <tr>
         <td>{taskObj.Name}</td>
         <td>{taskObj.Description}</td>
-        <span>
+        <td>
           <button
             className="btn btn-primary"
-            onClick={() => setUpdates(true)}
-            style={{ margin: 5 }}
+            onClick={openEditModal}
+            style={{ marginRight: 8 }}
           >
             Update
           </button>
 
-          <button
-            className="btn btn-secondary"
-            onClick={() => setDeletes(true)}
-          >
+          <button className="btn btn-secondary" onClick={openDeleteModal}>
             Delete
           </button>
-        </span>
+        </td>
       </tr>
 
       <EditTask
-        modal={updates}
-        toggle={toggle}
-        updateTask={updateTask}
+        modal={isEditOpen}
+        toggle={closeEditModal}
+        updateTask={handleUpdate}
         taskObj={taskObj}
       />
 
       <DeleteTask
-        modal={deletes}
-        toggle={delToggle}
+        modal={isDeleteOpen}
+        toggle={closeDeleteModal}
         handleDelete={handleDelete}
       />
     </>

@@ -1,57 +1,68 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
 const EditTaskPopup = ({ modal, toggle, updateTask, taskObj }) => {
-  const [taskName, setTaskName] = useState("");
-  const [description, setDescription] = useState("");
+  const [formData, setFormData] = useState({
+    Name: "",
+    Description: "",
+  });
+
+  // Sync task data when modal opens or task changes
+  useEffect(() => {
+    if (taskObj) {
+      setFormData({
+        Name: taskObj.Name,
+        Description: taskObj.Description,
+      });
+    }
+  }, [taskObj, modal]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    name === "taskName" ? setTaskName(value) : setDescription(value);
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
-
-  useEffect(() => {
-    setTaskName(taskObj.Name);
-    setDescription(taskObj.Description);
-  }, []);
 
   const handleUpdate = (e) => {
     e.preventDefault();
-    let tempObj = {};
-    tempObj["Name"] = taskName;
-    tempObj["Description"] = description;
-    updateTask(tempObj);
+    updateTask(formData);
+    toggle();
   };
 
   return (
     <Modal isOpen={modal} toggle={toggle}>
       <ModalHeader toggle={toggle}>Update Task</ModalHeader>
+
       <ModalBody>
         <div className="form-group mb-3">
           <label>Task Name</label>
           <input
             type="text"
             className="form-control"
-            value={taskName}
+            name="Name"
+            value={formData.Name}
             onChange={handleChange}
-            name="taskName"
           />
         </div>
+
         <div className="form-group">
           <label>Description</label>
           <textarea
             rows="5"
             className="form-control"
-            value={description}
+            name="Description"
+            value={formData.Description}
             onChange={handleChange}
-            name="description"
-          ></textarea>
+          />
         </div>
       </ModalBody>
+
       <ModalFooter>
         <Button color="primary" onClick={handleUpdate}>
           Update
-        </Button>{" "}
+        </Button>
         <Button color="secondary" onClick={toggle}>
           Cancel
         </Button>

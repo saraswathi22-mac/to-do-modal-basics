@@ -1,46 +1,35 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import CreateTask from "../modals/CreateTask";
 import TableContent from "./TableContent";
 
+const STORAGE_KEY = "taskList";
+
 const TodoList = () => {
   const [modal, setModal] = useState(false);
-  const [taskList, setTaskList] = useState([]);
+  const [taskList, setTaskList] = useState(() => {
+    // ✅ lazy initialization (IMPORTANT)
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  });
 
+  // ✅ Persist ONLY when taskList changes
   useEffect(() => {
-    let arr = localStorage.getItem("taskList");
-
-    if (arr) {
-      let obj = JSON.parse(arr);
-      setTaskList(obj);
-    }
-  }, []);
-
-  const deleteTask = (index) => {
-    let tempList = taskList;
-    tempList.splice(index, 1);
-    localStorage.setItem("taskList", JSON.stringify(tempList));
-    setTaskList(tempList);
-    window.location.reload();
-  };
-
-  const updateListArray = (obj, index) => {
-    let tempList = taskList;
-    tempList[index] = obj;
-    localStorage.setItem("taskList", JSON.stringify(tempList));
-    setTaskList(tempList);
-    window.location.reload();
-  };
-
-  const toggle = () => {
-    setModal(!modal);
-  };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(taskList));
+  }, [taskList]);
 
   const saveTask = (taskObj) => {
-    let tempList = taskList;
-    tempList.push(taskObj);
-    localStorage.setItem("taskList", JSON.stringify(tempList));
-    setTaskList(taskList);
+    setTaskList(prev => [...prev, taskObj]);
     setModal(false);
+  };
+
+  const deleteTask = (index) => {
+    setTaskList(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateListArray = (updatedTask, index) => {
+    setTaskList(prev =>
+      prev.map((task, i) => (i === index ? updatedTask : task))
+    );
   };
 
   return (
@@ -63,21 +52,24 @@ const TodoList = () => {
           </thead>
 
           <tbody>
-            {taskList &&
-              taskList.map((obj, index) => (
-                <TableContent
-                  taskObj={obj}
-                  index={index}
-                  deleteTask={deleteTask}
-                  updateListArray={updateListArray}
-                />
-              ))}
+            {taskList.map((task, index) => (
+              <TableContent
+                key={index}
+                taskObj={task}
+                index={index}
+                deleteTask={deleteTask}
+                updateListArray={updateListArray}
+              />
+            ))}
           </tbody>
         </table>
       </div>
-      <CreateTask toggle={toggle} modal={modal} save={saveTask} />
+
+      <CreateTask toggle={() => setModal(false)} modal={modal} save={saveTask} />
     </>
   );
 };
 
 export default TodoList;
+
+// Key → State → Read → Persist → Actions → Render
